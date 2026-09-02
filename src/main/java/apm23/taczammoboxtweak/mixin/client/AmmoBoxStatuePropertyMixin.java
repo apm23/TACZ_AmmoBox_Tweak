@@ -12,14 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nullable;
-
 @Mixin(value = AmmoBoxStatueProperty.class, remap = false)
 public abstract class AmmoBoxStatuePropertyMixin {
     @Inject(method = "get", at = @At("HEAD"), cancellable = true)
     private void taczAmmoBoxTweak$diamondVisualForLevel2(ItemStack stack,
-                                                         @Nullable ClientLevel level,
-                                                         @Nullable LivingEntity entity,
+                                                         ClientLevel level,
+                                                         LivingEntity entity,
                                                          int seed,
                                                          ItemDisplayContext displayContext,
                                                          CallbackInfoReturnable<Integer> cir) {
