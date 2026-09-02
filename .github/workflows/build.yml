@@ -20,7 +20,38 @@ jobs:
           gradle-version: '9.5.1'
       - name: Validate JSON
         run: find src/main/resources -name '*.json' -print0 | xargs -0 -n1 python3 -m json.tool > /dev/null
-      - name: Build
+      - name: Verify ammo box recipes
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          base = Path('src/main/resources/data/tacz/recipe')
+          cases = [
+              ('iron_ammo_box.json', [' I ', 'ICI', ' I '], 'I', '#c:ingots/iron', 0),
+              ('gold_ammo_box.json', [' G ', 'GCG', ' G '], 'G', '#c:ingots/gold', 1),
+              ('diamond_ammo_box.json', [' D ', 'DCD', ' D '], 'D', '#c:gems/diamond', 2),
+          ]
+          for filename, pattern, material_key, material, level in cases:
+              data = json.loads((base / filename).read_text())
+              assert data['pattern'] == pattern, (filename, data['pattern'])
+              assert data['key'][material_key] == material, (filename, data['key'])
+              assert data['key']['C'] == 'minecraft:chest', (filename, data['key'])
+              assert data['result']['id'] == 'tacz:ammo_box'
+              assert data['result']['components']['minecraft:custom_data']['Level'] == level
+
+          lv2 = json.loads(Path('src/main/resources/data/tacz_ammobox_tweak/recipe/diamond_ammo_box_level_2.json').read_text())
+          assert lv2['pattern'] == ['NBN']
+          assert lv2['key']['N'] == 'minecraft:netherite_ingot'
+          box = lv2['key']['B']
+          assert box['fabric:type'] == 'fabric:components'
+          assert box['base'] == 'tacz:ammo_box'
+          assert box['components']['minecraft:custom_data']['Level'] == 2
+          assert lv2['result']['id'] == 'tacz:ammo_box'
+          assert lv2['result']['components']['minecraft:custom_data']['Level'] == 3
+          print('Recipe functional assertions passed.')
+          PY
+      - name: Build and unit tests
         run: gradle build --stacktrace
       - name: Server smoke
         shell: bash
@@ -100,5 +131,6 @@ jobs:
           name: tacz-ammobox-tweak
           path: |
             build/libs/*.jar
+            build/reports/tests/test/
             server-smoke.log
             client-smoke.log
