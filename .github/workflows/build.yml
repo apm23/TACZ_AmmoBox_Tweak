@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '25'
@@ -22,7 +22,41 @@ jobs:
         run: find src/main/resources -name '*.json' -print0 | xargs -0 -n1 python3 -m json.tool > /dev/null
       - name: Build
         run: gradle build --stacktrace
+      - name: Server smoke
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p run
+          echo 'eula=true' > run/eula.txt
+          rm -f server-smoke.log
+          set +e
+          timeout 150s gradle runServer --console=plain 2>&1 | tee server-smoke.log
+          rc=${PIPESTATUS[0]}
+          set -e
+
+          if grep -Eq 'Done \([^)]*\)!|Done \(' server-smoke.log; then
+            echo 'Server reached ready state.'
+          else
+            echo 'Server never reached ready state.' >&2
+            tail -n 200 server-smoke.log >&2
+            exit 1
+          fi
+
+          if grep -Eqi 'mixin.*(failed|error)|failed to load|exception in server tick loop|crash report' server-smoke.log; then
+            echo 'Runtime/mixin error detected.' >&2
+            tail -n 200 server-smoke.log >&2
+            exit 1
+          fi
+
+          # timeout(124/143) is expected because a healthy Minecraft server keeps running.
+          if [[ $rc -ne 0 && $rc -ne 124 && $rc -ne 143 ]]; then
+            echo "Unexpected runServer exit code: $rc" >&2
+            exit $rc
+          fi
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: tacz-ammobox-tweak
-          path: build/libs/*.jar
+          path: |
+            build/libs/*.jar
+            server-smoke.log
