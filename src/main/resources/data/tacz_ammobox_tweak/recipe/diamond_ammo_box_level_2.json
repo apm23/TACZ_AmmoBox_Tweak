@@ -6,12 +6,14 @@
   "key": {
     "N": "minecraft:netherite_ingot",
     "B": {
-      "item": "tacz:ammo_box",
+      "fabric:type": "fabric:components",
+      "base": "tacz:ammo_box",
       "components": {
         "minecraft:custom_data": {
           "Level": 2
         }
-      }
+      },
+      "strict": false
     }
   },
   "result": {
