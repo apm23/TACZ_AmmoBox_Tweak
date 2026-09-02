@@ -13,9 +13,10 @@ base {
 repositories {
     mavenCentral()
     maven { url = 'https://maven.fabricmc.net/' }
+    maven { url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven/' }
 }
 
-// Compile against the exact TACZ Refabricated 26.2 R3 release used by this addon.
+// Compile and smoke-test against the exact TACZ Refabricated 26.2 R3 release.
 def taczJar = layout.buildDirectory.file('deps/TACZ-Refabricated-26.2-1.1.8+fabric.26.2.R3.jar')
 def fetchTacz = tasks.register('fetchTacz') {
     outputs.file(taczJar)
@@ -30,20 +31,23 @@ def fetchTacz = tasks.register('fetchTacz') {
     }
 }
 
-configurations {
-    taczCompile
-}
-
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
     compileOnly files(taczJar)
+    runtimeOnly files(taczJar)
+    runtimeOnly "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:26.2.1"
 }
 
 tasks.withType(JavaCompile).configureEach {
     dependsOn(fetchTacz)
     options.release = 25
+}
+
+tasks.matching { it.name == 'runServer' || it.name == 'runClient' }.configureEach {
+    dependsOn(fetchTacz)
 }
 
 processResources {
