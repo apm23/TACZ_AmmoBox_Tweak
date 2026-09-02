@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "DCD",
+    " D "
+  ],
+  "key": {
+    "D": "#c:gems/diamond",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "tacz:ammo_box",
+    "components": {
+      "minecraft:custom_data": {
+        "Level": 2
+      }
+    }
+  }
+}
