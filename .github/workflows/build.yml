@@ -54,11 +54,46 @@ jobs:
 
           echo 'Server reached ready state and addon resources parsed cleanly.'
 
-          # timeout(124/143) is expected because a healthy Minecraft server keeps running.
           if [[ $rc -ne 0 && $rc -ne 124 && $rc -ne 143 ]]; then
             echo "Unexpected runServer exit code: $rc" >&2
             exit $rc
           fi
+
+      - name: Client smoke
+        shell: bash
+        run: |
+          set -uo pipefail
+          rm -f client-smoke.log
+          set +e
+          timeout 75s xvfb-run -a gradle runClient --console=plain 2>&1 | tee client-smoke.log
+          rc=${PIPESTATUS[0]}
+          set -e
+
+          if grep -Eqi 'mixin.*(failed|error)|mixin apply failed|critical injection failure|crash report|exception in thread "main"' client-smoke.log; then
+            echo 'Client mixin/runtime error detected.' >&2
+            tail -n 250 client-smoke.log >&2
+            exit 1
+          fi
+
+          if ! grep -Eq 'Loading Minecraft 26\.2|Setting user:' client-smoke.log; then
+            echo 'Client did not reach Minecraft startup.' >&2
+            tail -n 250 client-smoke.log >&2
+            exit 1
+          fi
+
+          if ! grep -Fq 'tacz_ammobox_tweak 0.1.0' client-smoke.log; then
+            echo 'Addon was not discovered in client runtime.' >&2
+            tail -n 250 client-smoke.log >&2
+            exit 1
+          fi
+
+          echo 'Client launched with TACZ and addon without mixin/runtime crash.'
+
+          if [[ $rc -ne 0 && $rc -ne 124 && $rc -ne 143 ]]; then
+            echo "Unexpected runClient exit code: $rc" >&2
+            exit $rc
+          fi
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -66,3 +101,4 @@ jobs:
           path: |
             build/libs/*.jar
             server-smoke.log
+            client-smoke.log
