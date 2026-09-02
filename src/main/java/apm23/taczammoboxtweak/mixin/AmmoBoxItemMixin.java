@@ -1,5 +1,6 @@
 package apm23.taczammoboxtweak.mixin;
 
+import apm23.taczammoboxtweak.AmmoBoxTierRules;
 import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.item.IAmmo;
 import com.tacz.guns.api.item.IAmmoBox;
@@ -24,19 +25,8 @@ import java.util.function.Consumer;
 
 @Mixin(value = AmmoBoxItem.class, remap = false)
 public abstract class AmmoBoxItemMixin {
-    private static final int IRON_CAPACITY = 1500;
-    private static final int GOLD_CAPACITY = 4000;
-    private static final int DIAMOND_CAPACITY = 6000;
-    private static final int DIAMOND_LEVEL_2_CAPACITY = 10000;
-    private static final int DIAMOND_LEVEL_2 = 3;
-
     private static int capacityFor(ItemStack stack, IAmmoBox box) {
-        return switch (box.getAmmoLevel(stack)) {
-            case 0 -> IRON_CAPACITY;
-            case 1 -> GOLD_CAPACITY;
-            case 2 -> DIAMOND_CAPACITY;
-            default -> DIAMOND_LEVEL_2_CAPACITY;
-        };
+        return AmmoBoxTierRules.capacityForLevel(box.getAmmoLevel(stack));
     }
 
     @Inject(method = "overrideStackedOnOther", at = @At("HEAD"), cancellable = true)
@@ -109,7 +99,8 @@ public abstract class AmmoBoxItemMixin {
         if (!(stack.getItem() instanceof IAmmoBox box)) {
             return;
         }
-        if (!box.isCreative(stack) && !box.isAllTypeCreative(stack) && box.getAmmoLevel(stack) >= DIAMOND_LEVEL_2) {
+        if (!box.isCreative(stack) && !box.isAllTypeCreative(stack)
+                && AmmoBoxTierRules.isDiamondLevel2(box.getAmmoLevel(stack))) {
             cir.setReturnValue(Component.translatable("item.tacz_ammobox_tweak.diamond_ammo_box_level_2")
                     .withStyle(style -> style.withColor(0x55FFFF)));
         }
