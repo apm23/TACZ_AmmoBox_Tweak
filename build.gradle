@@ -39,11 +39,18 @@ dependencies {
     compileOnly files(taczJar)
     runtimeOnly files(taczJar)
     runtimeOnly "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:26.2.1"
+
+    testImplementation platform('org.junit:junit-bom:5.13.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 tasks.withType(JavaCompile).configureEach {
     dependsOn(fetchTacz)
     options.release = 25
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }
 
 tasks.matching { it.name == 'runServer' || it.name == 'runClient' }.configureEach {
