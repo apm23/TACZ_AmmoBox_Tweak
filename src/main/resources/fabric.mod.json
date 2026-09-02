@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "tacz_ammobox_tweak",
+  "version": "${version}",
+  "name": "TACZ AmmoBox Tweak",
+  "description": "Absolute-capacity ammo boxes and revised recipes for TACZ Refabricated 26.2.",
+  "authors": ["apm23"],
+  "environment": "*",
+  "mixins": [
+    "tacz_ammobox_tweak.mixins.json",
+    "tacz_ammobox_tweak.client.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": "*",
+    "minecraft": "26.2",
+    "java": ">=25",
+    "tacz": ">=1.1.8"
+  }
+}
