@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NBN"
+  ],
+  "key": {
+    "N": "minecraft:netherite_ingot",
+    "B": {
+      "item": "tacz:ammo_box",
+      "components": {
+        "minecraft:custom_data": {
+          "Level": 2
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "tacz:ammo_box",
+    "components": {
+      "minecraft:custom_data": {
+        "Level": 3
+      }
+    }
+  }
+}
