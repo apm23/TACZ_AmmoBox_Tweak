@@ -1,5 +1,6 @@
 package apm23.taczammoboxtweak.mixin.client;
 
+import apm23.taczammoboxtweak.AmmoBoxTierRules;
 import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.item.IAmmoBox;
 import com.tacz.guns.client.renderer.item.AmmoBoxStatueProperty;
@@ -24,10 +25,11 @@ public abstract class AmmoBoxStatuePropertyMixin {
         if (!(stack.getItem() instanceof IAmmoBox box)) {
             return;
         }
-        if (box.isCreative(stack) || box.isAllTypeCreative(stack) || box.getAmmoLevel(stack) < 3) {
+        if (box.isCreative(stack) || box.isAllTypeCreative(stack)
+                || !AmmoBoxTierRules.isDiamondLevel2(box.getAmmoLevel(stack))) {
             return;
         }
         boolean open = box.getAmmoId(stack).equals(DefaultAssets.EMPTY_AMMO_ID) || box.getAmmoCount(stack) <= 0;
-        cir.setReturnValue(open ? 4 : 5);
+        cir.setReturnValue(AmmoBoxTierRules.diamondModelState(open));
     }
 }
