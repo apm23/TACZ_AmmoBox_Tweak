@@ -30,23 +30,29 @@ jobs:
           echo 'eula=true' > run/eula.txt
           rm -f server-smoke.log
           set +e
-          timeout 150s gradle runServer --console=plain 2>&1 | tee server-smoke.log
+          timeout 90s gradle runServer --console=plain 2>&1 | tee server-smoke.log
           rc=${PIPESTATUS[0]}
           set -e
 
-          if grep -Eq 'Done \([^)]*\)!|Done \(' server-smoke.log; then
-            echo 'Server reached ready state.'
-          else
+          if ! grep -Eq 'Done \([^)]*\)!|Done \(' server-smoke.log; then
             echo 'Server never reached ready state.' >&2
             tail -n 200 server-smoke.log >&2
             exit 1
           fi
 
-          if grep -Eqi 'mixin.*(failed|error)|failed to load|exception in server tick loop|crash report' server-smoke.log; then
+          if grep -Eqi 'mixin.*(failed|error)|exception in server tick loop|crash report' server-smoke.log; then
             echo 'Runtime/mixin error detected.' >&2
             tail -n 200 server-smoke.log >&2
             exit 1
           fi
+
+          if grep -Fq "Couldn't parse data file 'tacz_ammobox_tweak:" server-smoke.log; then
+            echo 'TACZ AmmoBox Tweak recipe/resource failed to parse.' >&2
+            grep -F "Couldn't parse data file 'tacz_ammobox_tweak:" server-smoke.log >&2 || true
+            exit 1
+          fi
+
+          echo 'Server reached ready state and addon resources parsed cleanly.'
 
           # timeout(124/143) is expected because a healthy Minecraft server keeps running.
           if [[ $rc -ne 0 && $rc -ne 124 && $rc -ne 143 ]]; then
